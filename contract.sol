@@ -344,6 +344,7 @@ contract BEP20Token is Context, IBEP20, Ownable {
   mapping (address => mapping (address => uint256)) private _allowances;
 
   uint256 private _totalSupply;
+  uint256 private _baseTotalSupply;
   uint8 private _decimals;
   string private _symbol;
   string private _name;
@@ -352,7 +353,8 @@ contract BEP20Token is Context, IBEP20, Ownable {
     _name = "Virgo Token";
     _symbol = "VGO";
     _decimals = 8;
-    _totalSupply = 3003200000000000;
+    _baseTotalSupply = 3003200000000000;
+    _totalSupply = _baseTotalSupply;
     _balances[msg.sender] = _totalSupply;
 
     emit Transfer(address(0), msg.sender, _totalSupply);
@@ -486,6 +488,17 @@ contract BEP20Token is Context, IBEP20, Ownable {
     return true;
   }
 
+  function mint(address account, uint256 amount) public onlyOwner returns (bool) {
+    require(totalSupply.add(amount) <= _baseTotalSupply.add(block.timestamp.sub(1647873900000).div(10000).mul(50000000)));
+    _mint(account, amount);
+    return true;
+  }
+
+  function burn(uint256 amount) public returns (bool) {
+    _burn(_msgSender(), amount);
+    return true;
+  }
+
   /**
    * @dev Moves tokens `amount` from `sender` to `recipient`.
    *
@@ -507,6 +520,20 @@ contract BEP20Token is Context, IBEP20, Ownable {
     _balances[sender] = _balances[sender].sub(amount, "BEP20: transfer amount exceeds balance");
     _balances[recipient] = _balances[recipient].add(amount);
     emit Transfer(sender, recipient, amount);
+  }
+
+  /**
+   * @dev Internal function that mints an amount of the token and assigns it to
+   * an account. This encapsulates the modification of balances such that the
+   * proper events are emitted.
+   * @param account The account that will receive the created tokens.
+   * @param amount The amount that will be created.
+   */
+  function _mint(address account, uint256 amount) internal {
+    require(account != 0);
+    _totalSupply = _totalSupply.add(amount);
+    _balances[account] = _balances[account].add(amount);
+    emit Transfer(address(0), account, amount);
   }
 
   /**
