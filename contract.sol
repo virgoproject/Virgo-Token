@@ -348,6 +348,7 @@ contract BEP20Token is Context, IBEP20, Ownable {
   uint8 private _decimals;
   string private _symbol;
   string private _name;
+  uint256 private _mintStartDate;
 
   constructor() public {
     _name = "Virgo Token";
@@ -356,6 +357,7 @@ contract BEP20Token is Context, IBEP20, Ownable {
     _baseTotalSupply = 3003200000000000;
     _totalSupply = _baseTotalSupply;
     _balances[msg.sender] = _totalSupply;
+    _mintStartDate = 0;
 
     emit Transfer(address(0), msg.sender, _totalSupply);
   }
@@ -489,9 +491,15 @@ contract BEP20Token is Context, IBEP20, Ownable {
   }
 
   function mint(address account, uint256 amount) public onlyOwner returns (bool) {
-    require(totalSupply.add(amount) <= _baseTotalSupply.add(block.timestamp.sub(1647873900000).div(10000).mul(50000000)));
+    require(_mintStartDate > 0, "minting not activated");
+    require(_totalSupply.add(amount) <= _baseTotalSupply.add(block.timestamp.sub(_mintStartDate).div(10).mul(50000000)));
     _mint(account, amount);
     return true;
+  }
+
+  function activateMint() public onlyOwner returns (bool) {
+    require(_mintStartDate == 0, "minting already activated");
+    _mintStartDate = block.timestamp;
   }
 
   function burn(uint256 amount) public returns (bool) {
@@ -530,7 +538,7 @@ contract BEP20Token is Context, IBEP20, Ownable {
    * @param amount The amount that will be created.
    */
   function _mint(address account, uint256 amount) internal {
-    require(account != 0);
+    require(account != address(0));
     _totalSupply = _totalSupply.add(amount);
     _balances[account] = _balances[account].add(amount);
     emit Transfer(address(0), account, amount);
