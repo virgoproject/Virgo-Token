@@ -492,7 +492,7 @@ contract BEP20Token is Context, IBEP20, Ownable {
 
   function mint(address account, uint256 amount) public onlyOwner returns (bool) {
     require(_mintStartDate > 0, "minting not activated");
-    require(_totalSupply.add(amount) <= _baseTotalSupply.add(block.timestamp.sub(_mintStartDate).div(10).mul(50000000)));
+    require(_totalSupply.add(amount) <= _baseTotalSupply.add(block.timestamp.sub(_mintStartDate).div(10).mul(50000000)), "mint exceeds max x");
     _mint(account, amount);
     return true;
   }
